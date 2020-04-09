@@ -1,0 +1,20 @@
+{
+  "name": "wlisp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "wlisp.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Artur Augusto Martins",
+  "license": "MIT",
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "babel-jest": "^25.2.6",
+    "jest": "^25.2.7"
+  },
+  "dependencies": {
+    "parcel-plugin-nuke-dist": "^1.0.1"
+  }
+}
