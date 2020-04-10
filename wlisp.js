@@ -18,7 +18,16 @@ const wlisp = function() {
   }
   
   this.opers = {
-    '^':  {exec: function(...x) {return x[0][x[1]](x[2])}},
+    '^':  {exec: function(...x) {
+      let node = x[0]
+      let operationName = x[1]
+      let argument = x[2]
+      let operation = node[operationName]      
+      if (typeof operation === 'function') {
+        return operation.call(node, argument)
+      }
+      return operation
+    }},
     'getvar':  {exec: function(...x) {return this[x[0]] || null}},
     'ctx':  {exec: function(...x) {return this}},
     'setvar':  {exec: function(...x) {return this[x[0]] = x[1]}},
@@ -56,11 +65,6 @@ const wlisp = function() {
       }
     }
   };
-
-  /*'create_element': {exec: (...x) => Array.from(x
-    .reduce((a, c) => a.appendChild(document.createElement(c))
-      .parentElement, document.createElement('span')).children)
-  }*/
 
   this.NotFoundException = function(message) {
      this.message = message;
