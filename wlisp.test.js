@@ -19,17 +19,15 @@ test('nested unformated lisp to correct value', () => {
 });
 
 test('async functions', () => {
-
   // set a async lisp function
-  lsp.opers.get = {
-    exec: (...x) => {
-      return new Promise((resolve, reject) => {
-        window.setTimeout(() => {
-          resolve(10)
-        }, 10)
-      })
-    }
+  lsp.opers.get = (...x) => {
+    return new Promise((resolve, reject) => {
+      window.setTimeout(() => {
+        resolve(10)
+      }, 10)
+    })
   }
+  
 
   let res = lsp.run('(+ 1 (get))')
   return res.then((res) => {
@@ -220,5 +218,127 @@ test('to run code from node and get parent node `el.parentNode`', () => {
   return res.then((res) => {
     expect(res.outerHTML).toBe('<div><span id="root" lisp="(^ (getvar rootNode) parentNode)"></span></div>')
     expect(document.body.innerHTML).toBe('\n<div><span id="root" lisp="(^ (getvar rootNode) parentNode)"></span></div>')
+  })
+});
+
+
+test('true to be equal', () => {
+  let res = lsp.run('(= 1 1)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('true to be equal multiple', () => {
+  let res = lsp.run('(= 1 1 1)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('false to be equal multiple', () => {
+  let res = lsp.run('(= 1 1 2)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+
+test('true to be >', () => {
+  let res = lsp.run('(> 2 1 0)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('false to be <', () => {
+  let res = lsp.run('(< 1 1 2)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+test('true to be <=', () => {
+  let res = lsp.run('(<= 1 1 1)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+test('false to be <=', () => {
+  let res = lsp.run('(<= 2 1 2)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+test('true to be >=', () => {
+  let res = lsp.run('(>= 3 2 1)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('true to be >= two itens', () => {
+  let res = lsp.run('(>= 3 2)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('false to be >=', () => {
+  let res = lsp.run('(>= 1 2 1)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+test('true to be /=', () => {
+  let res = lsp.run('(/= 1 2)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+test('false to be /=', () => {
+  let res = lsp.run('(/= 2 2)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+
+test('false to be all different', () => {
+  let res = lsp.run('(/= 2 1 2)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+test('true to be all different', () => {
+  let res = lsp.run('(/= 1 2 3)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+
+test('true to be all combinations', () => {
+  let res = lsp.run('(combine 1 2 3)')
+  return res.then((res) => {
+    expect(res).toEqual([ [ '1', '2' ], [ '1', '3' ], [ '2', '3' ] ])
+  })
+});
+
+
+test('true to be the combination', () => {
+  let res = lsp.run('(combine 1 2)')
+  return res.then((res) => {
+    expect(res).toEqual([ [ '1', '2' ] ])
   })
 });

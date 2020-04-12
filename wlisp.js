@@ -18,7 +18,7 @@ const wlisp = function() {
   }
   
   this.opers = {
-    '^':  {exec: function(...x) {
+    '^': function(...x) {
       let node = x[0]
       let operationName = x[1]
       let argument = x[2]
@@ -27,42 +27,71 @@ const wlisp = function() {
         return operation.call(node, argument)
       }
       return operation
-    }},
-    'getvar':  {exec: function(...x) {return this[x[0]] || null}},
-    'ctx':  {exec: function(...x) {return this}},
-    'setvar':  {exec: function(...x) {return this[x[0]] = x[1]}},
-    'if':  {exec: (...x) => isNaN(parseFloat(x[0])) || !!parseFloat(x[0]) ? x[1] : x[2] || null},
-    'print':  {exec: (...x) => console.log(x) || null},
-    '+':    {exec: (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0)},
-    'float':    {exec: (...x) => x.map(v => parseFloat(v))},    
-    '-':    {exec: (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c)},
-    '*':    {exec: (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1)},
-    '/':    {exec: (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c)},
-    'list':    {exec: (...x) => x},
-    ':': {
-      exec: (...x) => {
-        let el = document.createElement(x[0])
-        let props = x.slice(1)
-        for (var i = 0; i < props.length; i++) {
+    },
+    'combine': (...x) => {
+      return x.flatMap(
+          (v, i) => x.slice(i+1).map( w => [v, w] )
+      );
+    },
+    '/=': (...x) => {
+      if (x.length === 2) return x[0] !== x[1]
+      let c = this.opers.combine.apply(this, x)
+      for (var i = 0; i < c.length-1; i++) {if (c[i][0] === c[i+1][1]) return false}
+      return true
+    },
+    '=': (...x) => {
+      for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
+      return true
+    },
+    '<': (...x) => {
+      for (var i = 0; i < x.length-1; i++) {if (x[i] >= x[i+1]) return false}
+      return true
+    },
+    '>': (...x) => {
+      for (var i = 0; i < x.length-1; i++) {if (x[i] <= x[i+1]) return false}
+      return true
+    },
+    '<=': (...x) => {
+      for (var i = 0; i < x.length-1; i++) {if (x[i] > x[i+1]) return false}
+      return true
+    },
+    '>=': (...x) => {
+      for (var i = 0; i < x.length-1; i++) {if (x[i] < x[i+1]) return false}
+      return true
+    },
+    'getvar': function(...x) {return this[x[0]] || null},
+    'ctx': function(...x) {return this},
+    'setvar': function(...x) {return this[x[0]] = x[1]},
+    'if': (...x) => isNaN(parseFloat(x[0])) || !!parseFloat(x[0]) ? x[1] : x[2] || null,
+    'print': (...x) => console.log(x) || null,
+    '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
+    'float': (...x) => x.map(v => parseFloat(v)),   
+    '-': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
+    '*': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
+    '/': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
+    'list': (...x) => x,
+    ':': (...x) => {
+      let el = document.createElement(x[0])
+      let props = x.slice(1)
+      for (var i = 0; i < props.length; i++) {
 
-          // detect html elements
-          if (!isArray(props[i])) {
-            el.appendChild(props[i])
-            continue
-          } else {
-            // expect props[i] to be an array with name=prop
-            // eg: ['value=abc'], ['id=123']]
-            for (var j = 0; j < props[i].length; j++) {
-              let nameVal = props[i][j]
-              let index = nameVal.indexOf('=')
-              let name = nameVal.slice(0, index)
-              let val = nameVal.slice(index+1)
-              el.setAttribute(name, val)
-            }
+        // detect html elements
+        if (!isArray(props[i])) {
+          el.appendChild(props[i])
+          continue
+        } else {
+          // expect props[i] to be an array with name=prop
+          // eg: ['value=abc'], ['id=123']]
+          for (var j = 0; j < props[i].length; j++) {
+            let nameVal = props[i][j]
+            let index = nameVal.indexOf('=')
+            let name = nameVal.slice(0, index)
+            let val = nameVal.slice(index+1)
+            el.setAttribute(name, val)
           }
         }
-        return el
       }
+      return el
     }
   };
 
@@ -87,13 +116,13 @@ const wlisp = function() {
         let oper = this.opers[operName];
 
         if (oper) {
-          return oper.exec.apply(ctx, values);
+          return oper.apply(ctx, values);
         }
 
         // node creation prefix char
         if (operName[0] === ':') {
           let oper = this.opers[operName[0]];
-          return oper.exec.apply(ctx, [operName.slice(1)].concat(values));
+          return oper.apply(ctx, [operName.slice(1)].concat(values));
         }
 
         throw new this.NotFoundException(`${operName}`);
