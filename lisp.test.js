@@ -1,7 +1,7 @@
-import wlisp from './wlisp.js'
+import lisp from './lisp.js'
 
 
-var lsp = new wlisp()
+var lsp = new lisp()
 
 test('lisp 1 + 1 to equal 2', () => {
   let res = lsp.run('(+ 1 1)')
@@ -57,7 +57,6 @@ test('created nested element with multiple properties and trailing =', () => {
   })
 });
 
-
 test('NotFoundException when try to create unknow element', () => {
   let res = lsp.run('(xxx)')
   return res.then((res) => {
@@ -74,14 +73,12 @@ test('nested elements', () => {
   })
 });
 
-
 test('to be neste lists', () => {
   let res = lsp.run('(list 1 2 3 (list a b c))')
   return res.then((res) => {
     expect(res).toEqual([ '1', '2', '3', [ 'a', 'b', 'c' ] ])    
   })
 });
-
 
 test('to float list', () => {
   let res = lsp.run('(float 3 4 5)')
@@ -90,7 +87,6 @@ test('to float list', () => {
   })
 });
 
-
 test('if letter character to be true', () => {
   let res = lsp.run('(if a 1 2)')
   return res.then((res) => {
@@ -98,14 +94,12 @@ test('if letter character to be true', () => {
   })
 });
 
-
 test('if zero character to be false', () => {
   let res = lsp.run('(if 0 1 2)')
   return res.then((res) => {
     expect(res).toEqual('2')
   })
 });
-
 
 test('if non zero character to be true', () => {
   let res = lsp.run('(if 1 1 2)')
@@ -128,13 +122,61 @@ test('if true without else to be the value', () => {
   })
 });
 
+test('if true without else to be the value', () => {
+  let res = lsp.run('(if 1 1)')
+  return res.then((res) => {
+    expect(res).toBe('1')
+  })
+});
+
+test('to evaluate the true condition', () => {
+  let res = lsp.run('(ctx (if (+ 0 1) (setvar a 1) (setvar b 2)))')
+  return res.then((res) => {
+    expect(res).toEqual({a: '1'})
+  })
+});
+
+test('to evaluate the else', () => {
+  let res = lsp.run('(ctx (if (- 1 1) (setvar a 1) (setvar b 2)))')
+  return res.then((res) => {
+    expect(res).toEqual({b: '2'})
+  })
+});
+
+test('to bool true', () => {
+  let res = lsp.run('(bool 1)')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+test('to bool false', () => {
+  let res = lsp.run('(bool 0)')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
+test('to bool bool type true', () => {
+  let res = lsp.run('(bool (= 1 1))')
+  return res.then((res) => {
+    expect(res).toBe(true)
+  })
+});
+
+test('to bool bool type false', () => {
+  let res = lsp.run('(bool (= 1 2))')
+  return res.then((res) => {
+    expect(res).toBe(false)
+  })
+});
+
 test('print return null', () => {
   let res = lsp.run('(print lala)')
   return res.then((res) => {
     expect(res).toBe(null)
   })
 });
-
 
 test('setvar be the value to x and return ctx', () => {
   let res = lsp.run('(ctx (setvar x val))')
@@ -143,7 +185,6 @@ test('setvar be the value to x and return ctx', () => {
     expect(res).toEqual({x: 'val'})
   })
 });
-
 
 test('dont polute ctx', () => {
   let p1 = lsp.run('(ctx (setvar x val))')
@@ -155,7 +196,6 @@ test('dont polute ctx', () => {
   })
 });
 
-
 test('set array', () => {
   let res = lsp.run('(ctx (setvar x (list 1 2 3)))')
   return res.then((res) => {
@@ -163,7 +203,6 @@ test('set array', () => {
     expect(res).toEqual({x: ['1', '2', '3']})
   })
 });
-
 
 test('get the var', () => {
   let res = lsp.run('(getvar x (setvar x 123))')
@@ -173,7 +212,6 @@ test('get the var', () => {
   })
 });
 
-
 test('get undefined var return null', () => {
   let res = lsp.run('(getvar y (setvar x 123))')
   return res.then((res) => {
@@ -181,7 +219,6 @@ test('get undefined var return null', () => {
     expect(res).toBe(null)
   })
 });
-
 
 test('to run code like `el.appendChild(document.createElement("span"))`', () => {
   document.body.innerHTML = `
@@ -195,7 +232,6 @@ test('to run code like `el.appendChild(document.createElement("span"))`', () => 
   })
 });
 
-
 test('to run code from node property and remove `el.remove()`', () => {
   document.body.innerHTML = `
 <div><span id="root" lisp="(^ (getvar rootNode) remove)"></span></div>`
@@ -207,7 +243,6 @@ test('to run code from node property and remove `el.remove()`', () => {
     expect(document.body.innerHTML).toBe('\n<div></div>')
   })
 });
-
 
 test('to run code from node and get parent node `el.parentNode`', () => {
   document.body.innerHTML = `
@@ -221,14 +256,12 @@ test('to run code from node and get parent node `el.parentNode`', () => {
   })
 });
 
-
 test('true to be equal', () => {
   let res = lsp.run('(= 1 1)')
   return res.then((res) => {
     expect(res).toBe(true)
   })
 });
-
 
 test('true to be equal multiple', () => {
   let res = lsp.run('(= 1 1 1)')
@@ -237,7 +270,6 @@ test('true to be equal multiple', () => {
   })
 });
 
-
 test('false to be equal multiple', () => {
   let res = lsp.run('(= 1 1 2)')
   return res.then((res) => {
@@ -245,14 +277,12 @@ test('false to be equal multiple', () => {
   })
 });
 
-
 test('true to be >', () => {
   let res = lsp.run('(> 2 1 0)')
   return res.then((res) => {
     expect(res).toBe(true)
   })
 });
-
 
 test('false to be <', () => {
   let res = lsp.run('(< 1 1 2)')
@@ -282,14 +312,12 @@ test('true to be >=', () => {
   })
 });
 
-
 test('true to be >= two itens', () => {
   let res = lsp.run('(>= 3 2)')
   return res.then((res) => {
     expect(res).toBe(true)
   })
 });
-
 
 test('false to be >=', () => {
   let res = lsp.run('(>= 1 2 1)')
@@ -312,7 +340,6 @@ test('false to be /=', () => {
   })
 });
 
-
 test('false to be all different', () => {
   let res = lsp.run('(/= 2 1 2)')
   return res.then((res) => {
@@ -327,7 +354,6 @@ test('true to be all different', () => {
   })
 });
 
-
 test('true to be all combinations', () => {
   let res = lsp.run('(combine 1 2 3)')
   return res.then((res) => {
@@ -335,10 +361,89 @@ test('true to be all combinations', () => {
   })
 });
 
-
 test('true to be the combination', () => {
   let res = lsp.run('(combine 1 2)')
   return res.then((res) => {
     expect(res).toEqual([ [ '1', '2' ] ])
+  })
+});
+
+test('to run multiple', () => {
+  let res = lsp.run(`(ctx (run (setvar x a)(setvar y b)))`)
+  return res.then((res) => {
+    expect(res).toEqual({'x': 'a', 'y': 'b'})
+  })
+});
+
+test('to incf', () => {
+  let res = lsp.run(`(ctx (run (setvar x 1) (incf x 2)))`)
+  return res.then((res) => {
+    expect(res).toEqual({'x': 3})
+  })
+});
+
+test('to incf non existing var returning NaN', () => {
+  let res = lsp.run(`(ctx (run (incf x 2)))`)
+  return res.then((res) => {
+    expect(res).toEqual({'x': NaN})
+  })
+});
+
+test('to incf return its before value', () => {
+  let res = lsp.run(`(ctx (run (setvar x 0) (setvar y (incf x 1)) ))`)
+  return res.then((res) => {
+    expect(res).toEqual({ x: 1, y: 0 })
+  })
+});
+
+test('to set r false', () => {
+  let res = lsp.run(`(ctx (run (setvar x 0) (setvar r (< (getvar x (incf x 5)) 5))))`)
+  return res.then((res) => {
+    expect(res).toEqual({ x: 5, r: false })
+  })
+});
+
+test('to loop', () => {
+  let res = lsp.run(`(ctx (run (setvar c 0) (loop (if (< (incf c 1) 9) (print aqui) (return) ) ) ) )`)
+  return res.then((res) => {
+    expect(res).toEqual({ c: 10 })
+  })
+});
+
+test('to loop on nested return', () => {
+  let res = lsp.run(`(ctx (run (setvar c 0) (loop (if (< (incf c 1) 4) (print aqui) (list (list (return) x)) ) ) ) )`)
+  return res.then((res) => {
+    expect(res).toEqual({ c: 5 })
+  })
+});
+
+test('to nested loop count to 100', () => {
+  let program = `
+(ctx 
+  (run 
+    (setvar count 0)
+    (setvar a 0)
+    (loop 
+      (if 
+        (< (incf a 1) 10)
+        (run
+          (setvar b 0)
+          (loop 
+            (if 
+              (< (incf b 1) 10)
+              (incf count 1)
+              (return)
+            )
+          )
+        )
+        (return)
+      )
+    )
+  )
+)`
+  let programStr = program.split('\n').join('')
+  let res = lsp.run(programStr)
+  return res.then((res) => {
+    expect(res).toEqual({ count: 100, a: 11, b: 11 })
   })
 });

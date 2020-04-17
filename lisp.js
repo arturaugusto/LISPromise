@@ -1,7 +1,5 @@
 const wlisp = function() {
 
-  var isArray = (arg) => arg.constructor === Array;
-  var isPromise = (arg) => arg.constructor === Promise;
 
   this.parse = function(expr) {
     return JSON.parse(expr
@@ -17,12 +15,16 @@ const wlisp = function() {
     )
   }
   
+  this.signals = {
+    'return': function() {this.type = 'return'}
+  }
+
   this.opers = {
     '^': function(...x) {
       let node = x[0]
       let operationName = x[1]
       let argument = x[2]
-      let operation = node[operationName]      
+      let operation = node[operationName]
       if (typeof operation === 'function') {
         return operation.call(node, argument)
       }
@@ -40,6 +42,7 @@ const wlisp = function() {
       return true
     },
     '=': (...x) => {
+      if (x.length === 1) return this.opers.bool(x[0])
       for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
       return true
     },
@@ -59,17 +62,30 @@ const wlisp = function() {
       for (var i = 0; i < x.length-1; i++) {if (x[i] < x[i+1]) return false}
       return true
     },
+    'bool': (...x) => {
+      if (typeof x[0] == 'boolean') return x[0]
+      return isNaN(parseFloat(x[0])) || !!parseFloat(x[0])
+    },
     'getvar': function(...x) {return this[x[0]] || null},
     'ctx': function(...x) {return this},
     'setvar': function(...x) {return this[x[0]] = x[1]},
-    'if': (...x) => isNaN(parseFloat(x[0])) || !!parseFloat(x[0]) ? x[1] : x[2] || null,
-    'print': (...x) => console.log(x) || null,
+    //'print': (...x) => console.log(x) || null,
+    'print': (...x) => null,
     '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
     'float': (...x) => x.map(v => parseFloat(v)),   
     '-': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
     '*': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
     '/': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
     'list': (...x) => x,
+    'incf': function(...x) {
+      let val = parseFloat(this[x[0]])
+      this[x[0]] = val + parseFloat(x[1])
+      return val
+    },
+    'run': function(...x) {for (var i = 0; i < x.length; i++) {_eval(x[i], this)}},
+    'return': (...x) => {
+      return new this.signals.return()
+    },
     ':': (...x) => {
       let el = document.createElement(x[0])
       let props = x.slice(1)
@@ -95,9 +111,29 @@ const wlisp = function() {
     }
   };
 
+  var isArray = (arg) => {
+    if (arg === null) return false
+    if (arg === undefined) return false
+    return arg.constructor === Array
+  };
+  var isPromise = (arg) => arg.constructor === Promise;
+
+  /**
+  Deep search inside the array for an instance of `signal`
+  and return true or false if found or not
+  */
+  var hasSignal = (arr, signal) => arr.flat(Infinity)
+    .reduce((a, c) => a || (c instanceof signal), false)
+  ;
+
   this.NotFoundException = function(message) {
      this.message = message;
      this.name = "NotFoundException";
+  };
+
+  this.MaxStackError = function(message) {
+     this.message = message;
+     this.name = "MaxStackError";
   };
 
   this.run = (expr, ctx) => {
@@ -105,12 +141,38 @@ const wlisp = function() {
     return this.eval(exprArr, ctx)
   }
 
+  this._maxStack = 10
+
   this.eval = (expr, ctx) => {
     ctx = ctx || {}
 
     if (isArray(expr)) {
       let operName = expr[0];
-      let args = expr.slice(1).map((val) => this.eval(val, ctx));
+
+      // code flow operations
+      
+      if (operName === 'loop') {
+        return this.eval(expr[1], ctx).then((res) => {
+          if (hasSignal([res], this.signals.return)) return null
+          return this.eval(['loop', expr[1]], ctx)
+        })
+      }
+
+      if (operName === 'if') {
+        let trueCheck = this.eval(['bool', expr[1]], ctx)
+        return trueCheck.then((res) => {
+          if (res) {
+            return this.eval(expr[2], ctx)
+          } else {
+            if (expr[3]) {
+              return this.eval(expr[3], ctx)
+            }
+            return null
+          }
+        })
+      }
+
+      let args = expr.slice(1).map((val) => this.eval(val, ctx))
       return Promise.all(args).then((values) => {
         // look for a registered function
         let oper = this.opers[operName];
@@ -124,14 +186,13 @@ const wlisp = function() {
           let oper = this.opers[operName[0]];
           return oper.apply(ctx, [operName.slice(1)].concat(values));
         }
-
         throw new this.NotFoundException(`${operName}`);
-        
-      })      
+      })
     } else {
       return expr;
     }
   };
+  const _eval = this.eval
 
   this.fromNode = (node, attributeName) => {
     return this.run(node.getAttribute(attributeName), {rootNode: node})
