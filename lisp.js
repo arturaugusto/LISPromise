@@ -150,7 +150,7 @@ const wlisp = function() {
       let operName = expr[0];
 
       // code flow operations
-      
+
       if (operName === 'loop') {
         return this.eval(expr[1], ctx).then((res) => {
           if (hasSignal([res], this.signals.return)) return null
@@ -172,8 +172,16 @@ const wlisp = function() {
         })
       }
 
-      let args = expr.slice(1).map((val) => this.eval(val, ctx))
-      return Promise.all(args).then((values) => {
+      let args
+      if (isArray(operName)) {
+        operName = 'run'
+        args = expr
+      } else {
+        args = expr.slice(1)
+      }
+
+      let argsEval = args.map((val) => this.eval(val, ctx))
+      return Promise.all(argsEval).then((values) => {
         // look for a registered function
         let oper = this.opers[operName];
 

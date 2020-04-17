@@ -375,6 +375,15 @@ test('to run multiple', () => {
   })
 });
 
+test('to run multiple without run', () => {
+  let res = lsp.run(`(ctx ( (setvar x a) (setvar y b) ) )`)
+  return res.then((res) => {
+    console.log(res)
+    expect(res).toEqual({'x': 'a', 'y': 'b'})
+  })
+});
+
+
 test('to incf', () => {
   let res = lsp.run(`(ctx (run (setvar x 1) (incf x 2)))`)
   return res.then((res) => {
@@ -420,13 +429,13 @@ test('to loop on nested return', () => {
 test('to nested loop count to 100', () => {
   let program = `
 (ctx 
-  (run 
+  ( 
     (setvar count 0)
     (setvar a 0)
     (loop 
       (if 
         (< (incf a 1) 10)
-        (run
+        (
           (setvar b 0)
           (loop 
             (if 
