@@ -1,4 +1,4 @@
-import lisp from './lisp.js'
+import lisp from '../src/lisp.js'
 
 
 var lsp = new lisp()

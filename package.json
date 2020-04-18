@@ -14,5 +14,8 @@
     "babel-jest": "^25.2.6",
     "jest": "^25.2.7"
   },
-  "dependencies": {}
+  "dependencies": {
+    "webpack": "^4.42.1",
+    "webpack-cli": "^3.3.11"
+  }
 }

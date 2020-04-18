@@ -1,5 +1,5 @@
-import lisp from './lisp.js'
-import lispdom from './lisp.dom.js'
+import lisp from '../src/lisp.js'
+import lispdom from '../src/lisp.dom.js'
 
 var lsp = new lisp()
 lsp.load(lispdom)
