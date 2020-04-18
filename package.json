@@ -4,7 +4,8 @@
   "description": "",
   "main": "lisp.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "npx webpack"
   },
   "author": "Artur Augusto Martins",
   "license": "MIT",
@@ -12,10 +13,9 @@
     "@babel/core": "^7.9.0",
     "@babel/preset-env": "^7.9.0",
     "babel-jest": "^25.2.6",
-    "jest": "^25.2.7"
-  },
-  "dependencies": {
+    "jest": "^25.2.7",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
-  }
+  },
+  "dependencies": {}
 }
