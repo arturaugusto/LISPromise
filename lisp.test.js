@@ -467,3 +467,11 @@ test('to loop until max stack error', () => {
     expect(err).toBeInstanceOf(lsp.MaxStackError)
   })
 });
+
+test.only('sleep the specified time', () => {
+  let ini = Date.now()
+  let res = lsp.run(`((sleep 50) (setvar x ok))`)
+  return res.then((res) => {
+    expect(Date.now() - ini).toBeGreaterThanOrEqual(50)
+  })
+});
