@@ -21,6 +21,13 @@ const lisp = function() {
   }
 
   this.opers = {
+    'sleep': (...x) => {
+      return new Promise( (resol, reject) => {
+          window.setTimeout(() => {
+            resol()
+          }, parseFloat(x[0]))
+      });
+    },
     '^': function(...x) {
       let node = x[0]
       let operationName = x[1]
