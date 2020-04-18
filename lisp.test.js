@@ -2,6 +2,9 @@ import lisp from './lisp.js'
 
 
 var lsp = new lisp()
+lsp._out = ''
+lsp.logger = (val) => lsp._out += val
+lsp.maxStack = 1000
 
 test('lisp 1 + 1 to equal 2', () => {
   let res = lsp.run('(+ 1 1)')
@@ -171,10 +174,11 @@ test('to bool bool type false', () => {
   })
 });
 
-test('print return null', () => {
+test('print return null and out text', () => {
   let res = lsp.run('(print lala)')
   return res.then((res) => {
     expect(res).toBe(null)
+    expect(lsp._out).toBe('lala')
   })
 });
 
@@ -378,7 +382,6 @@ test('to run multiple', () => {
 test('to run multiple without run', () => {
   let res = lsp.run(`(ctx ( (setvar x a) (setvar y b) ) )`)
   return res.then((res) => {
-    console.log(res)
     expect(res).toEqual({'x': 'a', 'y': 'b'})
   })
 });
@@ -429,24 +432,22 @@ test('to loop on nested return', () => {
 test('to nested loop count to 100', () => {
   let program = `
 (ctx 
-  ( 
-    (setvar count 0)
-    (setvar a 0)
-    (loop 
-      (if 
-        (< (incf a 1) 10)
-        (
-          (setvar b 0)
-          (loop 
-            (if 
-              (< (incf b 1) 10)
-              (incf count 1)
-              (return)
-            )
+  (setvar count 0)
+  (setvar a 0)
+  (loop 
+    (if 
+      (< (incf a 1) 10)
+      (
+        (setvar b 0)
+        (loop 
+          (if 
+            (< (incf b 1) 10)
+            (incf count 1)
+            (return)
           )
         )
-        (return)
       )
+      (return)
     )
   )
 )`
@@ -454,5 +455,15 @@ test('to nested loop count to 100', () => {
   let res = lsp.run(programStr)
   return res.then((res) => {
     expect(res).toEqual({ count: 100, a: 11, b: 11 })
+  })
+});
+
+test('to loop until max stack error', () => {
+  let res = lsp.run(`(loop (print infloop))`)
+  return res.then((res) => {
+    //...
+  }).catch((err) => {
+    console.log(lsp._out)
+    expect(err).toBeInstanceOf(lsp.MaxStackError)
   })
 });

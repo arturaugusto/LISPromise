@@ -1,6 +1,7 @@
-const wlisp = function() {
+const lisp = function() {
 
-
+  this.logger = (val) => console.log(val)
+  
   this.parse = function(expr) {
     return JSON.parse(expr
       .replace(/\(/g, ' __LBRACKETS__ ')
@@ -69,8 +70,7 @@ const wlisp = function() {
     'getvar': function(...x) {return this[x[0]] || null},
     'ctx': function(...x) {return this},
     'setvar': function(...x) {return this[x[0]] = x[1]},
-    //'print': (...x) => console.log(x) || null,
-    'print': (...x) => null,
+    'print': (...x) => {this.logger(x) ; return null},
     '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
     'float': (...x) => x.map(v => parseFloat(v)),   
     '-': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
@@ -112,10 +112,10 @@ const wlisp = function() {
   };
 
   var isArray = (arg) => {
-    if (arg === null) return false
-    if (arg === undefined) return false
+    if (!arg) return false
     return arg.constructor === Array
   };
+  
   var isPromise = (arg) => arg.constructor === Promise;
 
   /**
@@ -131,6 +131,8 @@ const wlisp = function() {
      this.name = "NotFoundException";
   };
 
+  this.maxStack = 10000
+  this.stackCount = 0
   this.MaxStackError = function(message) {
      this.message = message;
      this.name = "MaxStackError";
@@ -141,7 +143,6 @@ const wlisp = function() {
     return this.eval(exprArr, ctx)
   }
 
-  this._maxStack = 10
 
   this.eval = (expr, ctx) => {
     ctx = ctx || {}
@@ -152,8 +153,15 @@ const wlisp = function() {
       // code flow operations
 
       if (operName === 'loop') {
+        this.stackCount++
+        if (this.stackCount >= this.maxStack) {
+          throw new this.MaxStackError(`stackCount: ${this.stackCount}`);
+        }
         return this.eval(expr[1], ctx).then((res) => {
-          if (hasSignal([res], this.signals.return)) return null
+          if (hasSignal([res], this.signals.return)) {
+            this.stackCount = 0
+            return null
+          }
           return this.eval(['loop', expr[1]], ctx)
         })
       }
@@ -208,4 +216,4 @@ const wlisp = function() {
 
 }
 
-export default wlisp
+export default lisp
