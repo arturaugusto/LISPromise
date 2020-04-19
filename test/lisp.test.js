@@ -398,7 +398,6 @@ test('to loop until max stack error', () => {
   return res.then((res) => {
     //...
   }).catch((err) => {
-    //console.log(lsp._out)
     expect(err).toBeInstanceOf(lsp.MaxStackError)
   })
 });
@@ -408,5 +407,12 @@ test('sleep the specified time', () => {
   let res = lsp.run(`((sleep 50) (setvar x ok))`)
   return res.then((res) => {
     expect(Date.now() - ini).toBeGreaterThanOrEqual(50)
+  })
+});
+
+test.only('dolist', () => {
+  let res = lsp.run(`(ctx (setvar res 0) (dolist x (list 1 2 3) ('incf res (getvar x) )))`)
+  return res.then((res) => {
+    expect(res).toEqual({ res: 6, x: '3' })
   })
 });

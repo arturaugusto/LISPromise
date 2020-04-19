@@ -69,11 +69,18 @@ const lisp = function() {
     'setvar': function(...x) {return this[x[0]] = x[1]},
     'print': (...x) => {this.logger(x) ; return null},
     '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
-    'float': (...x) => x.map(v => parseFloat(v)),   
+    'float': (...x) => x.map(v => parseFloat(v)),
     '-': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
     '*': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
     '/': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
     'list': (...x) => x,
+    'dolist': function(...x) {
+      let itemName = x[0]
+      let listItems = x[1]
+      let lispCode = JSON.parse(x[2])
+      let res = listItems.map((val) => [['setvar', itemName, val], lispCode])
+      return _eval(res, this)
+    },
     'incf': function(...x) {
       let val = parseFloat(this[x[0]])
       this[x[0]] = val + parseFloat(x[1])
@@ -122,10 +129,15 @@ const lisp = function() {
     ctx = ctx || {}
 
     if (isArray(expr)) {
+
+
+
       let operName = expr[0];
 
+      // code to string when using the ' character
+      if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
+      
       // code flow operations
-
       if (operName === 'loop') {
         this.stackCount++
         if (this.stackCount >= this.maxStack) {
@@ -176,6 +188,7 @@ const lisp = function() {
           let oper = this.opers[operName[0]];
           return oper.apply(ctx, [operName.slice(1)].concat(values));
         }
+
         throw new this.NotFoundException(`${operName}`);
       })
     } else {
