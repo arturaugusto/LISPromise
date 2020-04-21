@@ -1,6 +1,6 @@
-import lisp from '../src/lisp.js'
+import plisp from '../src/plisp.js'
 
-var lsp = new lisp()
+var lsp = new plisp()
 
 test('parallel operations sharing same context', () => {
   /**

@@ -1,8 +1,8 @@
-import lisp from '../src/lisp.js'
-import lispdom from '../src/lisp.dom.js'
+import plisp from '../src/plisp.js'
+import plispdom from '../src/plisp.dom.js'
 
-var lsp = new lisp()
-lsp.load(lispdom)
+var lsp = new plisp()
+lsp.load(plispdom)
 
 test('created element to be span', () => {
   let res = lsp.run('(:span)')

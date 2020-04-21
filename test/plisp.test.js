@@ -1,7 +1,7 @@
-import lisp from '../src/lisp.js'
+import plisp from '../src/plisp.js'
 
 
-var lsp = new lisp()
+var lsp = new plisp()
 lsp._out = ''
 lsp.logger = (val) => lsp._out += val
 lsp.maxStack = 1000

@@ -1,4 +1,4 @@
-const lisp = function() {
+const plisp = function() {
 
   this.logger = (val) => console.log(val)
   
@@ -219,4 +219,4 @@ const lisp = function() {
   }
 }
 
-export default lisp
+export default plisp

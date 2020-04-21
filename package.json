@@ -1,8 +1,8 @@
 {
-  "name": "LISPromise",
+  "name": "plisp",
   "version": "1.0.0",
   "description": "",
-  "main": "lisp.js",
+  "main": "src/plisp.js",
   "scripts": {
     "test": "jest",
     "build": "npx webpack"
