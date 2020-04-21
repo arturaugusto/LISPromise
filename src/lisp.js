@@ -83,7 +83,7 @@ const lisp = function() {
       this[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
       return val
     },
-    'run': function(...x) {for (var i = 0; i < x.length; i++) {_eval(x[i], this)}},
+    'run': function(...x) {return x.reduce((a, c) => isArray(c) ? _eval(c, this) : c)},
     'return': (...x) => {
       return new this.signals.return()
     }
@@ -93,8 +93,6 @@ const lisp = function() {
     if (!arg) return false
     return arg.constructor === Array
   };
-  
-  var isPromise = (arg) => arg.constructor === Promise;
 
   /**
   Deep search inside the array for an instance of `signal`
@@ -121,7 +119,6 @@ const lisp = function() {
     return this.eval(exprArr, ctx)
   }
 
-
   this.eval = (expr, ctx) => {
     ctx = ctx || {}
 
@@ -132,6 +129,13 @@ const lisp = function() {
       // code to string when using the ' character
       if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
       
+      // code flow operations
+      if (operName === 'nextTick') {
+        return this.eval(expr[1], ctx).then((res) => {
+          return null
+        })
+      }      
+
       if (operName === 'dolist') {
         let theList = expr[1][1]
         let theExpr = expr[2]
@@ -143,7 +147,6 @@ const lisp = function() {
         }).then(() => null)
       }
 
-      // code flow operations
       if (operName === 'loop') {
         this.stackCount++
         if (this.stackCount >= this.maxStack) {
