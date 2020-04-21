@@ -30,7 +30,6 @@ test('async functions', () => {
       }, 10)
     })
   }
-  
 
   let res = lsp.run('(+ 1 (get))')
   return res.then((res) => {
@@ -329,6 +328,14 @@ test('to incf', () => {
   })
 });
 
+test('to incf multiple', () => {
+  let res = lsp.run(`(ctx (run (setvar x 1) (incf x 2 2)))`)
+  return res.then((res) => {
+    expect(res).toEqual({'x': 5})
+  })
+});
+
+
 test('to incf non existing var returning NaN', () => {
   let res = lsp.run(`(ctx (run (incf x 2)))`)
   return res.then((res) => {
@@ -410,9 +417,42 @@ test('sleep the specified time', () => {
   })
 });
 
-test.only('dolist', () => {
-  let res = lsp.run(`(ctx (setvar res 0) (dolist x (list 1 2 3) ('incf res (getvar x) )))`)
+test('dolist', () => {
+  let res = lsp.run(`(ctx (setvar res 0) (dolist (x (list 1 2 3) ) (incf res (getvar x) ) ))`)
   return res.then((res) => {
     expect(res).toEqual({ res: 6, x: '3' })
+  })
+});
+
+/*
+test('nested dolist', () => {
+  let program = `
+(ctx 
+  (setvar c 0)
+  (setvar a (list 2 2)) 
+  (setvar b (list 2 2)) 
+  (dolist (i (getvar a) ) (dolist (j (getvar b) ) (incf c (getvar i) (getvar j)) ) )
+)`
+
+  let programStr = program.split('\n').join('')
+  let res = lsp.run(programStr)
+  return res.then((res) => {
+    console.log(res)
+    //expect(res).toEqual({ c: 16, i: '2', j: '2' })
+  })
+});
+*/
+
+test.only('nested dolist', () => {
+  let program = `
+(ctx 
+  (setvar c 0)
+  (dolist (i (list 2 2) ) (dolist (j (list 2 2) ) (incf c (getvar i) (getvar j)) ) )
+)`
+
+  let programStr = program.split('\n').join('')
+  let res = lsp.run(programStr)
+  return res.then((res) => {
+    expect(res).toEqual({ c: 16, i: '2', j: '2' })
   })
 });

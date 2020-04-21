@@ -64,9 +64,13 @@ const lisp = function() {
       if (typeof x[0] == 'boolean') return x[0]
       return isNaN(parseFloat(x[0])) || !!parseFloat(x[0])
     },
-    'getvar': function(...x) {return this[x[0]] || null},
+    'getvar': function(...x) {
+      return this[x[0]] || null
+    },
     'ctx': function(...x) {return this},
-    'setvar': function(...x) {return this[x[0]] = x[1]},
+    'setvar': function(...x) {
+      return this[x[0]] = x[1]
+    },
     'print': (...x) => {this.logger(x) ; return null},
     '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
     'float': (...x) => x.map(v => parseFloat(v)),
@@ -74,16 +78,9 @@ const lisp = function() {
     '*': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
     '/': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
     'list': (...x) => x,
-    'dolist': function(...x) {
-      let itemName = x[0]
-      let listItems = x[1]
-      let lispCode = JSON.parse(x[2])
-      let res = listItems.map((val) => [['setvar', itemName, val], lispCode])
-      return _eval(res, this)
-    },
     'incf': function(...x) {
       let val = parseFloat(this[x[0]])
-      this[x[0]] = val + parseFloat(x[1])
+      this[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
       return val
     },
     'run': function(...x) {for (var i = 0; i < x.length; i++) {_eval(x[i], this)}},
@@ -130,13 +127,22 @@ const lisp = function() {
 
     if (isArray(expr)) {
 
-
-
       let operName = expr[0];
 
       // code to string when using the ' character
       if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
       
+      if (operName === 'dolist') {
+        let theList = expr[1][1]
+        let theExpr = expr[2]
+        let varName = expr[1][0]
+        return this.eval(theList, ctx).then((listValues) => {
+          return listValues.map((v) => [['setvar', varName, v], theExpr])
+        }).then((code) => {
+          return this.eval(code, ctx)
+        }).then(() => null)
+      }
+
       // code flow operations
       if (operName === 'loop') {
         this.stackCount++
