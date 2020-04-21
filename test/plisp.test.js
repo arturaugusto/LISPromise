@@ -103,14 +103,14 @@ test('if true without else to be the value', () => {
 });
 
 test('to evaluate the true condition', () => {
-  let res = lsp.run('(ctx (if (+ 0 1) (setvar a 1) (setvar b 2)))')
+  let res = lsp.run('((if (+ 0 1) (setvar a 1) (setvar b 2))(ctx))')
   return res.then((res) => {
     expect(res).toEqual({a: '1'})
   })
 });
 
 test('to evaluate the else', () => {
-  let res = lsp.run('(ctx (if (- 1 1) (setvar a 1) (setvar b 2)))')
+  let res = lsp.run('((if (- 1 1) (setvar a 1) (setvar b 2))(ctx))')
   return res.then((res) => {
     expect(res).toEqual({b: '2'})
   })
@@ -153,7 +153,7 @@ test('print return null and out text', () => {
 });
 
 test('setvar be the value to x and return ctx', () => {
-  let res = lsp.run('(ctx (setvar x val))')
+  let res = lsp.run('((setvar x val)(ctx))')
   return res.then((res) => {
     //console.log(res)
     expect(res).toEqual({x: 'val'})
@@ -161,17 +161,17 @@ test('setvar be the value to x and return ctx', () => {
 });
 
 test('dont polute ctx', () => {
-  let p1 = lsp.run('(ctx (setvar x val))')
+  let p1 = lsp.run('((setvar x val)(ctx))')
   return p1.then((res) => {
     expect(res).toEqual({x: 'val'})
-    return lsp.run('(ctx (setvar y otherval))')
+    return lsp.run('((setvar y otherval)(ctx))')
   }).then((res) => {
     expect(res).toEqual({y: 'otherval'})
   })
 });
 
 test('set array', () => {
-  let res = lsp.run('(ctx (setvar x (list 1 2 3)))')
+  let res = lsp.run('((setvar x (list 1 2 3))(ctx))')
   return res.then((res) => {
     //console.log(res)
     expect(res).toEqual({x: ['1', '2', '3']})
@@ -323,14 +323,14 @@ test('true to be the combination', () => {
 });
 
 test('to run multiple', () => {
-  let res = lsp.run(`(ctx (run (setvar x a)(setvar y b)))`)
+  let res = lsp.run(`((run (setvar x a)(setvar y b))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 'a', 'y': 'b'})
   })
 });
 
 test('to run multiple without run', () => {
-  let res = lsp.run(`(ctx ( (setvar x a) (setvar y b) ) )`)
+  let res = lsp.run(`(( (setvar x a) (setvar y b) ) (ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 'a', 'y': 'b'})
   })
@@ -338,14 +338,14 @@ test('to run multiple without run', () => {
 
 
 test('to incf', () => {
-  let res = lsp.run(`(ctx (run (setvar x 1) (incf x 2)))`)
+  let res = lsp.run(`((run (setvar x 1) (incf x 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 3})
   })
 });
 
 test('to incf multiple', () => {
-  let res = lsp.run(`(ctx (run (setvar x 1) (incf x 2 2)))`)
+  let res = lsp.run(`((run (setvar x 1) (incf x 2 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 5})
   })
@@ -353,35 +353,35 @@ test('to incf multiple', () => {
 
 
 test('to incf non existing var returning NaN', () => {
-  let res = lsp.run(`(ctx (run (incf x 2)))`)
+  let res = lsp.run(`((run (incf x 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': NaN})
   })
 });
 
 test('to incf return its before value', () => {
-  let res = lsp.run(`(ctx (run (setvar x 0) (setvar y (incf x 1)) ))`)
+  let res = lsp.run(`((run (setvar x 0) (setvar y (incf x 1)) )(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ x: 1, y: 0 })
   })
 });
 
 test('to set r false', () => {
-  let res = lsp.run(`(ctx (run (setvar x 0) (setvar r (< (getvar x (incf x 5)) 5))))`)
+  let res = lsp.run(`((run (setvar x 0) (setvar r (< (getvar x (incf x 5)) 5)))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ x: 5, r: false })
   })
 });
 
 test('to loop', () => {
-  let res = lsp.run(`(ctx (run (setvar c 0) (loop (if (< (incf c 1) 9) (print aqui) (return) ) ) ) )`)
+  let res = lsp.run(`((run (setvar c 0) (loop (if (< (incf c 1) 9) (print aqui) (return) ) ) ) (ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ c: 10 })
   })
 });
 
 test('to loop on nested return', () => {
-  let res = lsp.run(`(ctx (run (setvar c 0) (loop (if (< (incf c 1) 4) (print aqui) (list (list (return) x)) ) ) ) )`)
+  let res = lsp.run(`((run (setvar c 0) (loop (if (< (incf c 1) 4) (print aqui) (list (list (return) x)) ) ) ) (ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ c: 5 })
   })
@@ -389,7 +389,7 @@ test('to loop on nested return', () => {
 
 test('to nested loop count to 100', () => {
   let program = `
-(ctx 
+( 
   (setvar count 0)
   (setvar a 0)
   (loop 
@@ -408,6 +408,7 @@ test('to nested loop count to 100', () => {
       (return)
     )
   )
+  (ctx)
 )`
   let programStr = program.split('\n').join('')
   let res = lsp.run(programStr)
@@ -434,14 +435,14 @@ test('sleep the specified time', () => {
 });
 
 test('dolist', () => {
-  let res = lsp.run(`(ctx (setvar res 0) (dolist (x (list 1 2 3) ) (incf res (getvar x) ) ))`)
+  let res = lsp.run(`((setvar res 0) (dolist (x (list 1 2 3) ) (incf res (getvar x) ) )(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ res: 6, x: '3' })
   })
 });
 
 
-test.only('proper way to nested dolist', () => {
+test('proper way to nested dolist', () => {
   let program = `
 ( 
   (setvar c 0)
@@ -455,8 +456,7 @@ test.only('proper way to nested dolist', () => {
   let programStr = program.split('\n').join('')
   let res = lsp.run(programStr)
   return res.then((res) => {
-    console.log(res)
-    //expect(res).toEqual({ c: 16, i: '2', j: '2' })
+    expect(res).toEqual({ c: 16, a: [ '2', '2' ], b: [ '2', '2' ], i: '2', j: '2' })
   })
 });
 
