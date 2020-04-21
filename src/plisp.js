@@ -21,6 +21,13 @@ const plisp = function() {
     'return': function() {this.type = 'return'}
   }
 
+
+  const UnexpectedArgument = function(message) {
+     this.message = message;
+     this.name = "UnexpectedArgument";
+  };
+  this.UnexpectedArgument = UnexpectedArgument
+
   this.opers = {
     'sleep': (...x) => {
       return new Promise( (resol, reject) => {
@@ -68,7 +75,12 @@ const plisp = function() {
     'getvar': function(...x) {
       return this[x[0]] || null
     },
-    'ctx': function(...x) {return this},
+    'ctx': function(...x) {
+      if (x.length !== 0) {
+        throw new UnexpectedArgument(`ctx expects 0 arguments and got ${x.length}`)
+      }
+      return this
+    },
     'setvar': function(...x) {
       return this[x[0]] = x[1]
     },

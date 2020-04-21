@@ -474,3 +474,12 @@ test('nested dolist', () => {
     expect(res).toEqual({ c: 16, i: '2', j: '2' })
   })
 });
+
+test('ctx unexpected arg', () => {
+  let res = lsp.run(`((setvar x a)(ctx unexpected))`)
+  return res.then((res) => {
+    //...
+  }).catch((err) => {
+    expect(err).toBeInstanceOf(lsp.UnexpectedArgument)
+  })
+});
