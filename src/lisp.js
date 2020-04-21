@@ -4,6 +4,7 @@ const lisp = function() {
   
   this.parse = function(expr) {
     return JSON.parse(expr
+      .split('\n').join('')
       .replace(/\(/g, ' __LBRACKETS__ ')
       .replace(/\)/g, ' __RBRACKETS__ ')
       .trim()

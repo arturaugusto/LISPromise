@@ -14,7 +14,7 @@ test('parallel operations sharing same context', () => {
       (setvar c (getvar a))
     )
     (ctx)
-)`.split('\n').join(''))
+)`)
   return res.then((res) => {
     expect(res).toEqual({ a: [ '2', '2' ], c: null })
   })
@@ -37,7 +37,7 @@ test('operations line by line', () => {
   (setvar a (list 2 2))
   (setvar c (getvar a))
   (ctx)
-)`.split('\n').join(''))
+)`)
   return res.then((res) => {
     expect(res).toEqual({ a: [ '2', '2' ], c: [ '2', '2' ] })
   })
