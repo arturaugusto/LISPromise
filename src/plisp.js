@@ -142,7 +142,6 @@ const plisp = function() {
     ctx = ctx || {}
 
     if (isArray(expr)) {
-
       let operName = expr[0];
 
       // code to string when using the ' character
@@ -152,11 +151,9 @@ const plisp = function() {
         let theList = expr[1][1]
         let theExpr = expr[2]
         let varName = expr[1][0]
-        return this.eval(theList, ctx).then((listValues) => {
-          return listValues.map((v) => [['setvar', varName, v], theExpr])
-        }).then((code) => {
-          return this.eval(code, ctx)
-        }).then(() => null)
+        return this.run(theList, ctx).then((listValues) => {
+          return this.run(listValues.map((v) => [['setvar', varName, v], theExpr]), ctx)
+        })
       }
 
       if (operName === 'loop') {
@@ -196,6 +193,7 @@ const plisp = function() {
       }
 
       let argsEval = args.map((val) => this.eval(val, ctx))
+      
       return Promise.all(argsEval).then((values) => {
         // look for a registered function
         let oper = this.opers[operName];
@@ -216,6 +214,9 @@ const plisp = function() {
         }
 
         throw new this.NotFoundException(`${operName}`);
+      }).catch((err) => {
+        //console.log(expr)
+        //console.log(err)
       })
     } else {
       return expr;
