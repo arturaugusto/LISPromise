@@ -443,11 +443,12 @@ test('nested dolist', () => {
 });
 */
 
-test.only('nested dolist', () => {
+test('nested dolist', () => {
   let program = `
-(ctx 
+( 
   (setvar c 0)
   (dolist (i (list 2 2) ) (dolist (j (list 2 2) ) (incf c (getvar i) (getvar j)) ) )
+  (ctx)
 )`
 
   let programStr = program.split('\n').join('')

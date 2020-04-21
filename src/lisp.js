@@ -83,7 +83,8 @@ const lisp = function() {
       this[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
       return val
     },
-    'run': function(...x) {return x.reduce((a, c) => isArray(c) ? _eval(c, this) : c)},
+    'run': function(...x) {
+      return x.reduce((a, c) => isArray(c) ? _eval(c, this) : c)},
     'return': (...x) => {
       return new this.signals.return()
     }
@@ -115,7 +116,14 @@ const lisp = function() {
   };
 
   this.run = (expr, ctx) => {
+    ctx = ctx || {}
     const exprArr = isArray(expr) ? expr : this.parse(expr)
+    
+    // for list of operations
+    if (isArray(exprArr[0])) {
+      return exprArr.reduce((a, c, i) => a.then(() => this.eval(c, ctx)), Promise.resolve())
+    }
+    // for single operation
     return this.eval(exprArr, ctx)
   }
 
@@ -129,13 +137,6 @@ const lisp = function() {
       // code to string when using the ' character
       if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
       
-      // code flow operations
-      if (operName === 'nextTick') {
-        return this.eval(expr[1], ctx).then((res) => {
-          return null
-        })
-      }      
-
       if (operName === 'dolist') {
         let theList = expr[1][1]
         let theExpr = expr[2]
