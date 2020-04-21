@@ -194,6 +194,22 @@ test('get undefined var return null', () => {
   })
 });
 
+test('get the var with sintax sugar', () => {
+  let res = lsp.run('((setvar x 123)(&x))')
+  return res.then((res) => {
+    //console.log(res)
+    expect(res).toBe('123')
+  })
+});
+
+test('get null, because of Promise.all', () => {
+  let res = lsp.run('(((setvar x 123)(&x)))')
+  return res.then((res) => {
+    //console.log(res)
+    expect(res).toBe(null)
+  })
+});
+
 test('true to be equal', () => {
   let res = lsp.run('(= 1 1)')
   return res.then((res) => {
@@ -424,15 +440,17 @@ test('dolist', () => {
   })
 });
 
-/*
-test('nested dolist', () => {
+
+test.only('proper way to nested dolist', () => {
   let program = `
-(ctx 
+( 
   (setvar c 0)
   (setvar a (list 2 2)) 
   (setvar b (list 2 2)) 
   (dolist (i (getvar a) ) (dolist (j (getvar b) ) (incf c (getvar i) (getvar j)) ) )
-)`
+  (ctx)
+)
+`
 
   let programStr = program.split('\n').join('')
   let res = lsp.run(programStr)
@@ -441,7 +459,6 @@ test('nested dolist', () => {
     //expect(res).toEqual({ c: 16, i: '2', j: '2' })
   })
 });
-*/
 
 test('nested dolist', () => {
   let program = `

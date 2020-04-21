@@ -194,6 +194,11 @@ const plisp = function() {
           return oper.apply(ctx, values);
         }
 
+        if (operName[0] === '&') {
+          let oper = this.opers['getvar'];
+          return oper.apply(ctx, [operName.slice(1)].concat(values));
+        }
+
         // node creation prefix char
         if (operName[0] === ':') {
           let oper = this.opers[operName[0]];
