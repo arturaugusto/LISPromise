@@ -17,88 +17,77 @@ const plisp = function() {
     )
   }
   
-  this.signals = {
-    'return': function() {this.type = 'return'}
-  }
-
-
-  const UnexpectedArgument = function(message) {
-     this.message = message;
-     this.name = "UnexpectedArgument";
-  };
-  this.UnexpectedArgument = UnexpectedArgument
-
   this.opers = {
-    'sleep': (...x) => {
+    'sleep': (x, ctx) => {
       return new Promise( (resol, reject) => {
           window.setTimeout(() => {
             resol()
           }, parseFloat(x[0]))
       });
     },
-    'combine': (...x) => {
+    'combine': (x, ctx) => {
       return x.flatMap(
           (v, i) => x.slice(i+1).map( w => [v, w] )
       );
     },
-    '/=': (...x) => {
+    '/=': (x, ctx) => {
       if (x.length === 2) return x[0] !== x[1]
-      let c = this.opers.combine.apply(this, x)
+      let c = this.opers.combine(x, ctx)
       for (var i = 0; i < c.length-1; i++) {if (c[i][0] === c[i+1][1]) return false}
       return true
     },
-    '=': (...x) => {
+    '=': (x, ctx) => {
       if (x.length === 1) return this.opers.bool(x[0])
       for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
       return true
     },
-    '<': (...x) => {
+    '<': (x, ctx) => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] >= x[i+1]) return false}
       return true
     },
-    '>': (...x) => {
+    '>': (x, ctx) => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] <= x[i+1]) return false}
       return true
     },
-    '<=': (...x) => {
+    '<=': (x, ctx) => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] > x[i+1]) return false}
       return true
     },
-    '>=': (...x) => {
+    '>=': (x, ctx) => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] < x[i+1]) return false}
       return true
     },
-    'bool': (...x) => {
+    'bool': (x, ctx) => {
       if (typeof x[0] == 'boolean') return x[0]
       return isNaN(parseFloat(x[0])) || !!parseFloat(x[0])
     },
-    'getvar': function(...x) {
-      return this[x[0]] || null
+    'getvar': (x, ctx) => {
+      return ctx[x[0]] || null
     },
-    'ctx': function(...x) {
+    'ctx': (x, ctx) => {
       if (x.length !== 0) {
-        throw new UnexpectedArgument(`ctx expects 0 arguments and got ${x.length}`)
+        throw new this.UnexpectedArgument(`ctx expects 0 arguments and got ${x.length}`)
       }
-      return this
+      return ctx
     },
-    'setvar': function(...x) {
-      return this[x[0]] = x[1]
+    'setvar': (x, ctx) => {
+      return ctx[x[0]] = x[1]
     },
-    'print': (...x) => {this.logger(x) ; return null},
-    '+': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
-    'float': (...x) => x.map(v => parseFloat(v)),
-    '-': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
-    '*': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
-    '/': (...x) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
-    'list': (...x) => x,
-    'incf': function(...x) {
-      let val = parseFloat(this[x[0]])
-      this[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
+    'print': (x, ctx) => {this.logger(x) ; return null},
+    '+': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
+    'float': (x, ctx) => x.map(v => parseFloat(v)),
+    '-': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
+    '*': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
+    '/': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
+    'list': (x, ctx) => x,
+    'incf': (x, ctx) => {
+      let val = parseFloat(ctx[x[0]])
+      ctx[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
       return val
     },
-    'run': function(...x) {
-      return x.reduce((a, c) => isArray(c) ? _eval(c, this) : c)},
-    'return': (...x) => {
+    'run': (x, ctx) => {
+      return x.reduce((a, c) => isArray(c) ? _eval(c, ctx) : c)},
+    'return': (x, ctx) => {
       return new this.signals.return()
     }
   };
@@ -115,6 +104,15 @@ const plisp = function() {
   var hasSignal = (arr, signal) => arr.flat(Infinity)
     .reduce((a, c) => a || (c instanceof signal), false)
   ;
+
+  this.UnexpectedArgument = function(message) {
+     this.message = message;
+     this.name = "UnexpectedArgument";
+  };
+
+  this.signals = {
+    'return': function() {this.type = 'return'}
+  }
 
   this.NotFoundException = function(message) {
      this.message = message;
@@ -203,18 +201,18 @@ const plisp = function() {
         let oper = this.opers[operName];
 
         if (oper) {
-          return oper.apply(ctx, values);
+          return oper(values, ctx);
         }
 
         if (operName[0] === '&') {
           let oper = this.opers['getvar'];
-          return oper.apply(ctx, [operName.slice(1)].concat(values));
+          return oper([operName.slice(1)].concat(values), ctx);
         }
 
         // node creation prefix char
         if (operName[0] === ':') {
           let oper = this.opers[operName[0]];
-          return oper.apply(ctx, [operName.slice(1)].concat(values));
+          return oper([operName.slice(1)].concat(values), ctx);
         }
 
         throw new this.NotFoundException(`${operName}`);

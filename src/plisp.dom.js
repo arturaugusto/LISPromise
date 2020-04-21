@@ -4,7 +4,7 @@ var isArray = (arg) => {
 };
 
 export default {
-  '^': function(...x) {
+  '^': function(x, ctx) {
     let node = x[0]
     let operationName = x[1]
     let argument = x[2]
@@ -14,7 +14,7 @@ export default {
     }
     return operation
   },
-  ':': (...x) => {
+  ':': (x, ctx) => {
     let el = document.createElement(x[0])
     let props = x.slice(1)
     for (var i = 0; i < props.length; i++) {
