@@ -18,46 +18,46 @@ const plisp = function() {
   }
   
   this.op = {
-    'sleep': (x, ctx) => {
+    'sleep': x => {
       return new Promise( (resol, reject) => {
           window.setTimeout(() => {
             resol()
           }, _op.float(x[0]))
       });
     },
-    'combine': (x, ctx) => {
+    'combine': x => {
       return x.flatMap(
           (v, i) => x.slice(i+1).map( w => [v, w] )
       );
     },
-    '/=': (x, ctx) => {
+    '/=': x => {
       if (x.length === 2) return x[0] !== x[1]
-      let c = _op.combine(x, ctx)
+      let c = _op.combine(x)
       for (var i = 0; i < c.length-1; i++) {if (c[i][0] === c[i+1][1]) return false}
       return true
     },
-    '=': (x, ctx) => {
+    '=': x => {
       if (x.length === 1) return _op.bool(x[0])
       for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
       return true
     },
-    '<': (x, ctx) => {
+    '<': x => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] >= x[i+1]) return false}
       return true
     },
-    '>': (x, ctx) => {
+    '>': x => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] <= x[i+1]) return false}
       return true
     },
-    '<=': (x, ctx) => {
+    '<=': x => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] > x[i+1]) return false}
       return true
     },
-    '>=': (x, ctx) => {
+    '>=': x => {
       for (var i = 0; i < x.length-1; i++) {if (x[i] < x[i+1]) return false}
       return true
     },
-    'bool': (x, ctx) => {
+    'bool': x => {
       if (typeof x[0] == 'boolean') return x[0]
       return isNaN(_op.float(x[0])) || !!_op.float(x[0])
     },
@@ -73,9 +73,9 @@ const plisp = function() {
     'setvar': (x, ctx) => {
       return ctx[x[0]] = x[1]
     },
-    'print': (x, ctx) => {this.logger(x) ; return null},
-    '+': (x, ctx) => x.map(_op.float).reduce((a, c) => a + c, 0),
-    'float': (x, ctx) => {
+    'print': x => {this.logger(x) ; return null},
+    '+': x => x.map(_op.float).reduce((a, c) => a + c, 0),
+    'float': x => {
       if (isAtom(x)) return parseFloat(x)
       return x.map(v => {
         if (!isAtom(v)) {
@@ -84,10 +84,10 @@ const plisp = function() {
         return parseFloat(v)
       })
     },
-    '-': (x, ctx) => x.map(_op.float).reduce((a, c) => a - c),
-    '*': (x, ctx) => x.map(_op.float).reduce((a, c) => a * c, 1),
-    '/': (x, ctx) => x.map(_op.float).reduce((a, c) => a / c),
-    'list': (x, ctx) => x,
+    '-': x => x.map(_op.float).reduce((a, c) => a - c),
+    '*': x => x.map(_op.float).reduce((a, c) => a * c, 1),
+    '/': x => x.map(_op.float).reduce((a, c) => a / c),
+    'list': x => x,
     'incf': (x, ctx) => {
       let val = _op.float(ctx[x[0]])
       ctx[x[0]] = val + x.slice(1).map(_op.float).reduce((a, c) => a + c, 0)
@@ -98,9 +98,9 @@ const plisp = function() {
       ctx[x[0]] = val + x.slice(1).map(_op.float).reduce((a, c) => a - c, 0)
       return val
     },
-    'return': (x, ctx) => new this.signals.return(),
-    'nth': (x, ctx) => x[1][_op.float(x[0])],
-    'invert': (x, ctx) => {
+    'return': () => new this.signals.return(),
+    'nth': x => x[1][_op.float(x[0])],
+    'invert': x => {
       let res = []
       let theList = x[0]
       for (var i = theList.length - 1; i >= 0; i--) {res.push(theList[i])}
@@ -108,6 +108,7 @@ const plisp = function() {
     }
   };
   const _op = this.op
+  
   const isArray = (arg) => {
     if (!arg) return false
     return arg.constructor === Array
