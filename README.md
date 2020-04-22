@@ -1,2 +1,2 @@
 # plisp
-A javascript Promise based scripting language.
+A JavaScript Promise based scripting language.
