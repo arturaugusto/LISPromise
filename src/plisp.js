@@ -38,23 +38,28 @@ const plisp = function() {
     },
     '=': x => {
       if (x.length === 1) return _op.bool(x[0])
-      for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
+      let len = x.length
+      for (var i = 0; i < len-1; i++) {if (x[i] !== x[i+1]) return false}
       return true
     },
     '<': x => {
-      for (var i = 0; i < x.length-1; i++) {if (x[i] >= x[i+1]) return false}
+      let len = x.length
+      for (var i = 0; i < len-1; i++) {if (x[i] >= x[i+1]) return false}
       return true
     },
     '>': x => {
-      for (var i = 0; i < x.length-1; i++) {if (x[i] <= x[i+1]) return false}
+      let len = x.length
+      for (var i = 0; i < len-1; i++) {if (x[i] <= x[i+1]) return false}
       return true
     },
     '<=': x => {
-      for (var i = 0; i < x.length-1; i++) {if (x[i] > x[i+1]) return false}
+      let len = x.length
+      for (var i = 0; i < len-1; i++) {if (x[i] > x[i+1]) return false}
       return true
     },
     '>=': x => {
-      for (var i = 0; i < x.length-1; i++) {if (x[i] < x[i+1]) return false}
+      let len = x.length
+      for (var i = 0; i < len-1; i++) {if (x[i] < x[i+1]) return false}
       return true
     },
     'bool': x => {
