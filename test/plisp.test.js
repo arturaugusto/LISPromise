@@ -399,6 +399,20 @@ test('to get nth of list', () => {
   })
 });
 
+test('to get length of list', () => {
+  let res = lsp.run(`(len (list 1 2 3))`)
+  return res.then((res) => {
+    expect(res).toEqual(3)
+  })
+});
+
+test('to get length of lists', () => {
+  let res = lsp.run(`(len (list 1 2 3) (float 4 5 6))`)
+  return res.then((res) => {
+    expect(res).toEqual(6)
+  })
+});
+
 test('to get nth of list from codition', () => {
   let res = lsp.run(`(nth 1 (if (> 1 2) (float 1 2 3) (float 4 5 6)))`)
   return res.then((res) => {

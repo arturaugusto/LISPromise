@@ -23,3 +23,13 @@ test('to defun and execute it with arguments dont change golbal', () => {
     expect(res).toEqual('8')
   })
 });
+
+/*test('to defun looplist', () => {
+  let res = lsp.run((
+  (defun looplist (l) ())
+
+))
+  return res.then((res) => {
+    expect(res).toEqual('8')
+  })
+});*/

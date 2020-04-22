@@ -106,6 +106,7 @@ const plisp = function() {
     },
     'return': () => new this.signals.return(),
     'nth': x => x[1][_op.float(x[0])],
+    'len': x => x.reduce((a, c) => a+c.length, 0),
     'invert': x => {
       let res = []
       let theList = x[0]
