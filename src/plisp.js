@@ -185,13 +185,10 @@ const plisp = function() {
           }
         })
       }
-
-      let args = expr.slice(1)
-      let argsEval = args.map((val) => this.eval(val, ctx))
+      
+      let argsEval = expr.slice(1).map((val) => this.eval(val, ctx))
       return Promise.all(argsEval).then((values) => {
         return this.execOper(operName, values, ctx)
-      }).catch((err) => {
-        //console.log(err)
       })
     } else {
       return expr;
@@ -199,8 +196,13 @@ const plisp = function() {
   };
 
   this.execOper = (operName, values, ctx) => {
+    // parallel operations is a dummy operator to allow
+    // the execution of Promisse.all and dont get traped 
+    // at isArray(expr) && isArray(expr[0])
+    if (operName === 'parallel') return null
+    
     // look for a registered function
-    let oper = this.opers[operName];
+    let oper = this.opers[operName]
 
     if (oper) {
       return oper(values, ctx);

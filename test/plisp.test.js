@@ -40,7 +40,8 @@ test('async functions', () => {
 test('NotFoundException when try to create unknow element', () => {
   let res = lsp.run('(xxx)')
   return res.then((res) => {
-    //..
+    // cant get here
+    expect(false).toBe(true)
   }).catch((res) => {
     expect(res.name).toBe('NotFoundException')
   })
@@ -374,10 +375,11 @@ test('sleep the specified time', () => {
 });
 
 
-test('ctx unexpected arg', () => {
+test.only('ctx unexpected arg', () => {
   let res = lsp.run(`((setvar x a)(ctx unexpected))`)
   return res.then((res) => {
-    //...
+    // cant get here
+    expect(false).toBe(true)
   }).catch((err) => {
     expect(err).toBeInstanceOf(lsp.UnexpectedArgument)
   })
