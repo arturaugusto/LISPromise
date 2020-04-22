@@ -85,8 +85,6 @@ const plisp = function() {
       ctx[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
       return val
     },
-    'run': (x, ctx) => {
-      return x.reduce((a, c) => isArray(c) ? _eval(c, ctx) : c)},
     'return': (x, ctx) => {
       return new this.signals.return()
     }
@@ -132,7 +130,7 @@ const plisp = function() {
     
     // for list of operations
     if (isArray(exprArr[0])) {
-      return exprArr.reduce((a, c, i) => a.then(() => this.eval(c, ctx)), Promise.resolve())
+      return exprArr.reduce((a, c) => a.then(() => this.eval(c, ctx)), Promise.resolve())
     }
     // for single operation
     return this.eval(exprArr, ctx)
@@ -140,6 +138,10 @@ const plisp = function() {
 
   this.eval = (expr, ctx) => {
     ctx = ctx || {}
+
+    if (isArray(expr) && isArray(expr[0])) {
+      return this.run(expr, ctx)
+    }
 
     if (isArray(expr)) {
       let operName = expr[0];
@@ -184,44 +186,39 @@ const plisp = function() {
         })
       }
 
-      let args
-      if (isArray(operName)) {
-        operName = 'run'
-        args = expr
-      } else {
-        args = expr.slice(1)
-      }
-
+      let args = expr.slice(1)
       let argsEval = args.map((val) => this.eval(val, ctx))
-      
       return Promise.all(argsEval).then((values) => {
-        // look for a registered function
-        let oper = this.opers[operName];
-
-        if (oper) {
-          return oper(values, ctx);
-        }
-
-        if (operName[0] === '&') {
-          let oper = this.opers['getvar'];
-          return oper([operName.slice(1)].concat(values), ctx);
-        }
-
-        // node creation prefix char
-        if (operName[0] === ':') {
-          let oper = this.opers[operName[0]];
-          return oper([operName.slice(1)].concat(values), ctx);
-        }
-
-        throw new this.NotFoundException(`${operName}`);
+        return this.execOper(operName, values, ctx)
       }).catch((err) => {
-        //console.log(expr)
         //console.log(err)
       })
     } else {
       return expr;
     }
   };
+
+  this.execOper = (operName, values, ctx) => {
+    // look for a registered function
+    let oper = this.opers[operName];
+
+    if (oper) {
+      return oper(values, ctx);
+    }
+
+    if (operName[0] === '&') {
+      let oper = this.opers['getvar'];
+      return oper([operName.slice(1)].concat(values), ctx);
+    }
+
+    // node creation prefix char
+    if (operName[0] === ':') {
+      let oper = this.opers[operName[0]];
+      return oper([operName.slice(1)].concat(values), ctx);
+    }
+
+    throw new this.NotFoundException(`${operName}`);    
+  }
   const _eval = this.eval
 
   this.fromNode = (node, attributeName) => {

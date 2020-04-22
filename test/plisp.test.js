@@ -202,14 +202,6 @@ test('get the var with sintax sugar', () => {
   })
 });
 
-test('get null, because of Promise.all', () => {
-  let res = lsp.run('(((setvar x 123)(&x)))')
-  return res.then((res) => {
-    //console.log(res)
-    expect(res).toBe(null)
-  })
-});
-
 test('true to be equal', () => {
   let res = lsp.run('(= 1 1)')
   return res.then((res) => {
@@ -323,7 +315,7 @@ test('true to be the combination', () => {
 });
 
 test('to run multiple', () => {
-  let res = lsp.run(`((run (setvar x a)(setvar y b))(ctx))`)
+  let res = lsp.run(`(((setvar x a)(setvar y b))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 'a', 'y': 'b'})
   })
@@ -338,14 +330,14 @@ test('to run multiple without run', () => {
 
 
 test('to incf', () => {
-  let res = lsp.run(`((run (setvar x 1) (incf x 2))(ctx))`)
+  let res = lsp.run(`(((setvar x 1) (incf x 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 3})
   })
 });
 
 test('to incf multiple', () => {
-  let res = lsp.run(`((run (setvar x 1) (incf x 2 2))(ctx))`)
+  let res = lsp.run(`(((setvar x 1) (incf x 2 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': 5})
   })
@@ -353,21 +345,21 @@ test('to incf multiple', () => {
 
 
 test('to incf non existing var returning NaN', () => {
-  let res = lsp.run(`((run (incf x 2))(ctx))`)
+  let res = lsp.run(`(((incf x 2))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({'x': NaN})
   })
 });
 
 test('to incf return its before value', () => {
-  let res = lsp.run(`((run (setvar x 0) (setvar y (incf x 1)) )(ctx))`)
+  let res = lsp.run(`(((setvar x 0) (setvar y (incf x 1)) )(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ x: 1, y: 0 })
   })
 });
 
 test('to set r false', () => {
-  let res = lsp.run(`((run (setvar x 0) (setvar r (< (getvar x (incf x 5)) 5)))(ctx))`)
+  let res = lsp.run(`(((setvar x 0) (setvar r (< (getvar x (incf x 5)) 5)))(ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ x: 5, r: false })
   })

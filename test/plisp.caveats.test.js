@@ -42,3 +42,19 @@ test('operations line by line', () => {
     expect(res).toEqual({ a: [ '2', '2' ], c: [ '2', '2' ] })
   })
 });
+
+test.only('get null, because of Promise.all', () => {
+  let res = lsp.run('(((setvar x 123)(&x)))')
+  return res.then((res) => {
+    console.log(res)
+    expect(res).toBe(null)
+  })
+});
+
+test('get null, because of ...', () => {
+  let res = lsp.run('((... (setvar x 123) (&x)))')
+  return res.then((res) => {
+    //console.log(res)
+    expect(res).toBe(null)
+  })
+});
