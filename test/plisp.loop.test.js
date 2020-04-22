@@ -60,6 +60,7 @@ test('to loop until max stack error', () => {
 });
 
 
+/*
 test('dolist', () => {
   let res = lsp.run(`((setvar res 0) (dolist (x (list 1 2 3) ) (incf res (getvar x) ) )(ctx))`)
   return res.then((res) => {
@@ -68,13 +69,13 @@ test('dolist', () => {
 });
 
 
-test('proper way to nested dolist', () => {
+test('dolist with inside setvar', () => {
   let program = `
 ( 
   (setvar c 0)
   (setvar a (list 2 2)) 
-  (setvar b (list 2 2)) 
   (dolist (i (getvar a) ) 
+    (setvar b (list 2 2)) 
     (dolist (j (getvar b) )
       (incf c (getvar i) (getvar j))
     )
@@ -104,3 +105,4 @@ test('nested dolist', () => {
     expect(res).toEqual({ c: 16, i: '2', j: '2' })
   })
 });
+*/

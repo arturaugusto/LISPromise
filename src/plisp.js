@@ -149,15 +149,6 @@ const plisp = function() {
       // code to string when using the ' character
       if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
       
-      if (operName === 'dolist') {
-        let theList = expr[1][1]
-        let theExpr = expr[2]
-        let varName = expr[1][0]
-        return this.run(theList, ctx).then((listValues) => {
-          return this.run(listValues.map((v) => [['setvar', varName, v], theExpr]), ctx)
-        })
-      }
-
       if (operName === 'loop') {
         this.stackCount++
         if (this.stackCount >= this.maxStack) {

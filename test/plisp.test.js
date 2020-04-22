@@ -375,7 +375,7 @@ test('sleep the specified time', () => {
 });
 
 
-test.only('ctx unexpected arg', () => {
+test('ctx unexpected arg', () => {
   let res = lsp.run(`((setvar x a)(ctx unexpected))`)
   return res.then((res) => {
     // cant get here
