@@ -5,6 +5,7 @@ const plisp = function() {
   this.parse = function(expr) {
     return JSON.parse(expr
       .split('\n').join('')
+      .replace(/\(\)/g, '(_)')
       .replace(/\(/g, ' __LBRACKETS__ ')
       .replace(/\)/g, ' __RBRACKETS__ ')
       .trim()
@@ -163,6 +164,8 @@ const plisp = function() {
      this.name = "MaxStackError";
   };
 
+  this.funcs = {}
+
   this.run = (expr, ctx) => {
     ctx = ctx || {}
     const exprArr = isArray(expr) ? expr : this.parse(expr)
@@ -188,6 +191,23 @@ const plisp = function() {
       // code to string when using the ' character
       if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
       
+      if (this.funcs[operName]) {
+        return this.funcs[operName](expr.slice(1))
+      }
+
+      if (operName === 'defun') {
+
+        this.funcs[expr[1]] = (args) => {
+          var funCtx = _clone(ctx)
+          let argsNames = expr[2]
+          for (let i = 0; i < argsNames.length; i++) {
+            funCtx[argsNames[i]] = args[i]
+          }
+          return this.eval(expr[3], funCtx)
+        }
+        return null
+      }
+
       if (operName === 'loop') {
         this.stackCount++
         if (this.stackCount >= this.maxStack) {
@@ -252,6 +272,7 @@ const plisp = function() {
     throw new this.NotFoundException(`${operName}`);    
   }
   const _eval = this.eval
+  const _clone = x => JSON.parse(JSON.stringify(x))
 
   this.fromNode = (node, attributeName) => {
     return this.run(node.getAttribute(attributeName), {rootNode: node})
