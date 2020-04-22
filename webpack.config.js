@@ -1,10 +1,10 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/lisp.js',
+  entry: './src/plisp.js',
   mode: 'production',
   output: {
-    filename: 'lisp.js',
+    filename: 'plisp.js',
     path: path.resolve(__dirname, 'dist'),
   },
 };
