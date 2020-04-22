@@ -23,7 +23,7 @@ test('nested unformated lisp to correct value', () => {
 
 test('async functions', () => {
   // set a async lisp function
-  lsp.opers.get = (...x) => {
+  lsp.op.get = (...x) => {
     return new Promise((resolve, reject) => {
       window.setTimeout(() => {
         resolve(10)
@@ -359,6 +359,13 @@ test('to incf return its before value', () => {
   })
 });
 
+test('to decf', () => {
+  let res = lsp.run(`(((setvar x 1) (decf x 2))(ctx))`)
+  return res.then((res) => {
+    expect(res).toEqual({'x': -1})
+  })
+});
+
 test('to set r false', () => {
   let res = lsp.run(`(((setvar x 0) (setvar r (< (getvar x (incf x 5)) 5)))(ctx))`)
   return res.then((res) => {
@@ -382,5 +389,43 @@ test('ctx unexpected arg', () => {
     expect(false).toBe(true)
   }).catch((err) => {
     expect(err).toBeInstanceOf(lsp.UnexpectedArgument)
+  })
+});
+
+test('to get nth of list', () => {
+  let res = lsp.run(`(nth 1 (list 1 2 3))`)
+  return res.then((res) => {
+    expect(res).toEqual('2')
+  })
+});
+
+test('to get nth of list from codition', () => {
+  let res = lsp.run(`(nth 1 (if (> 1 2) (float 1 2 3) (float 4 5 6)))`)
+  return res.then((res) => {
+    expect(res).toEqual(5)
+  })
+});
+
+test('to invert array', () => {
+  let res = lsp.run(`(invert (float 1 2 3))`)
+  return res.then((res) => {
+    expect(res).toEqual([3,2,1])
+  })
+});
+
+test('to throw erro when try convert list to float', () => {
+  let res = lsp.run(`(float (list 1 (list 2) 3))`)
+  return res.then((res) => {
+    // cant get here
+    expect(true).toBe(false)
+  }).catch((err) => {
+    expect(err).toBeInstanceOf(lsp.InvalidType)
+  })
+});
+
+test('to invert array', () => {
+  let res = lsp.run(`(invert (list (float 1 1) (float 2 2) (float 3 3)))`)
+  return res.then((res) => {
+    expect(res).toEqual([ [ 3, 3 ], [ 2, 2 ], [ 1, 1 ] ])
   })
 });

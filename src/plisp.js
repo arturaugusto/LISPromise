@@ -17,12 +17,12 @@ const plisp = function() {
     )
   }
   
-  this.opers = {
+  this.op = {
     'sleep': (x, ctx) => {
       return new Promise( (resol, reject) => {
           window.setTimeout(() => {
             resol()
-          }, parseFloat(x[0]))
+          }, _op.float(x[0]))
       });
     },
     'combine': (x, ctx) => {
@@ -32,12 +32,12 @@ const plisp = function() {
     },
     '/=': (x, ctx) => {
       if (x.length === 2) return x[0] !== x[1]
-      let c = this.opers.combine(x, ctx)
+      let c = _op.combine(x, ctx)
       for (var i = 0; i < c.length-1; i++) {if (c[i][0] === c[i+1][1]) return false}
       return true
     },
     '=': (x, ctx) => {
-      if (x.length === 1) return this.opers.bool(x[0])
+      if (x.length === 1) return _op.bool(x[0])
       for (var i = 0; i < x.length-1; i++) {if (x[i] !== x[i+1]) return false}
       return true
     },
@@ -59,7 +59,7 @@ const plisp = function() {
     },
     'bool': (x, ctx) => {
       if (typeof x[0] == 'boolean') return x[0]
-      return isNaN(parseFloat(x[0])) || !!parseFloat(x[0])
+      return isNaN(_op.float(x[0])) || !!_op.float(x[0])
     },
     'getvar': (x, ctx) => {
       return ctx[x[0]] || null
@@ -74,26 +74,54 @@ const plisp = function() {
       return ctx[x[0]] = x[1]
     },
     'print': (x, ctx) => {this.logger(x) ; return null},
-    '+': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a + c, 0),
-    'float': (x, ctx) => x.map(v => parseFloat(v)),
-    '-': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a - c),
-    '*': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a * c, 1),
-    '/': (x, ctx) => x.map(v => parseFloat(v)).reduce((a, c) => a / c),
+    '+': (x, ctx) => x.map(_op.float).reduce((a, c) => a + c, 0),
+    'float': (x, ctx) => {
+      if (isAtom(x)) return parseFloat(x)
+      return x.map(v => {
+        if (!isAtom(v)) {
+          throw new this.InvalidType(`Cant convert ${typeof v} to float.`)
+        }
+        return parseFloat(v)
+      })
+    },
+    '-': (x, ctx) => x.map(_op.float).reduce((a, c) => a - c),
+    '*': (x, ctx) => x.map(_op.float).reduce((a, c) => a * c, 1),
+    '/': (x, ctx) => x.map(_op.float).reduce((a, c) => a / c),
     'list': (x, ctx) => x,
     'incf': (x, ctx) => {
-      let val = parseFloat(ctx[x[0]])
-      ctx[x[0]] = val + x.slice(1).map(v => parseFloat(v)).reduce((a, c) => a + c, 0)
+      let val = _op.float(ctx[x[0]])
+      ctx[x[0]] = val + x.slice(1).map(_op.float).reduce((a, c) => a + c, 0)
       return val
     },
-    'return': (x, ctx) => {
-      return new this.signals.return()
+    'decf': (x, ctx) => {
+      let val = _op.float(ctx[x[0]])
+      ctx[x[0]] = val + x.slice(1).map(_op.float).reduce((a, c) => a - c, 0)
+      return val
+    },
+    'return': (x, ctx) => new this.signals.return(),
+    'nth': (x, ctx) => x[1][_op.float(x[0])],
+    'invert': (x, ctx) => {
+      let res = []
+      let theList = x[0]
+      for (var i = theList.length - 1; i >= 0; i--) {res.push(theList[i])}
+      return res
     }
   };
-
-  var isArray = (arg) => {
+  const _op = this.op
+  const isArray = (arg) => {
     if (!arg) return false
     return arg.constructor === Array
   };
+
+  const isAtom = x => isArray(x) ? false :
+    (typeof x === 'string')
+    || (typeof x === 'number')
+    || (typeof x === 'boolean')
+    || (x === null)
+    || (x === undefined)
+    || isNaN(x)
+    || !isFinite(x)
+
 
   /**
   Deep search inside the array for an instance of `signal`
@@ -106,6 +134,11 @@ const plisp = function() {
   this.UnexpectedArgument = function(message) {
      this.message = message;
      this.name = "UnexpectedArgument";
+  };
+
+  this.InvalidType = function(message) {
+     this.message = message;
+     this.name = "InvalidType";
   };
 
   this.signals = {
@@ -193,20 +226,20 @@ const plisp = function() {
     if (operName === 'parallel') return null
     
     // look for a registered function
-    let oper = this.opers[operName]
+    let oper = this.op[operName]
 
     if (oper) {
       return oper(values, ctx);
     }
 
     if (operName[0] === '&') {
-      let oper = this.opers['getvar'];
+      let oper = this.op['getvar'];
       return oper([operName.slice(1)].concat(values), ctx);
     }
 
     // node creation prefix char
     if (operName[0] === ':') {
-      let oper = this.opers[operName[0]];
+      let oper = this.op[operName[0]];
       return oper([operName.slice(1)].concat(values), ctx);
     }
 
@@ -220,7 +253,7 @@ const plisp = function() {
 
   this.load = (obj) => {
     Object.keys(obj).map((k) => {
-      this.opers[k] = obj[k]
+      this.op[k] = obj[k]
     })
   }
 }
