@@ -7,14 +7,14 @@ lsp.logger = (val) => lsp._out += val
 lsp.maxStack = 1000
 
 test('to loop', () => {
-  let res = lsp.run(`((run (setvar c 0) (loop (if (< (incf c 1) 9) (print aqui) (return) ) ) ) (ctx))`)
+  let res = lsp.run(`(((setvar c 0) (loop (if (< (incf c 1) 9) (print aqui) (return) ) ) ) (ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ c: 10 })
   })
 });
 
 test('to loop on nested return', () => {
-  let res = lsp.run(`((run (setvar c 0) (loop (if (< (incf c 1) 4) (print aqui) (list (list (return) x)) ) ) ) (ctx))`)
+  let res = lsp.run(`(((setvar c 0) (loop (if (< (incf c 1) 4) (print aqui) (list (list (return) x)) ) ) ) (ctx))`)
   return res.then((res) => {
     expect(res).toEqual({ c: 5 })
   })
@@ -73,8 +73,6 @@ test('proper way to nested dolist', () => {
 ( 
   (setvar c 0)
   (setvar a (list 2 2)) 
-  
-  
   (setvar b (list 2 2)) 
   (dolist (i (getvar a) ) 
     (dolist (j (getvar b) )
