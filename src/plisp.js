@@ -257,7 +257,7 @@ const plisp = function() {
       for (let i = 0; i < funObj.args.length; i++) {
         funCtx[funObj.args[i]] = values[i]
       }
-      return this.run(funObj.fun, funCtx)
+      return this.eval(funObj.fun, funCtx)
     }
 
     // look for a registered function
