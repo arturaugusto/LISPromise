@@ -444,9 +444,16 @@ test('to invert array', () => {
   })
 });
 
-test.only('to float scalar', () => {
+test('to float scalar', () => {
   let res = lsp.run(`(f 123)`)
   return res.then((res) => {
     expect(res).toBe(123)
+  })
+});
+
+test.only('get the 0', () => {
+  let res = lsp.run(`(&a)`, {a: 0})
+  return res.then((res) => {
+    expect(res).toBe(0)
   })
 });

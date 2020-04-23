@@ -24,12 +24,33 @@ test('to defun and execute it with arguments dont change golbal', () => {
   })
 });
 
-/*test('to defun looplist', () => {
-  let res = lsp.run((
-  (defun looplist (l) ())
-
-))
+test('to defun factorial', () => {
+  let res = lsp.run(`(
+      (defun factorial (n) 
+        (
+          (setvar res (f 1))
+          (setvar count (f 1))
+          (setvar n (f (&n)))
+          (loop 
+            (if
+              (< (incf count 1) (&n))
+              (setvar res (* (&count) (&res)))
+              (return)
+            )
+          )
+          (&res)
+        )
+      )
+      
+      (float
+        (factorial 0)
+        (factorial 1)
+        (factorial 5)
+        (factorial 10)
+      )
+      
+    )`)
   return res.then((res) => {
-    expect(res).toEqual('8')
+    expect(res).toEqual([ 1, 1, 120, 3628800 ])
   })
-});*/
+});

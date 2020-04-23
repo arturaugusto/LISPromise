@@ -45,7 +45,6 @@ const plisp = function() {
     },
     '<': x => {
       let len = x.length
-      console.log(x)
       let xf = x.map(_op.float)
       for (var i = 0; i < len-1; i++) {if (xf[i] >= xf[i+1]) return false}
       return true
@@ -73,7 +72,7 @@ const plisp = function() {
       return isNaN(_op.float(x[0])) || !!_op.float(x[0])
     },
     'getvar': (x, ctx) => {
-      return ctx[x[0]] || null
+      return ctx[x[0]] === undefined ? null : ctx[x[0]]
     },
     'ctx': (x, ctx) => {
       if (x.length !== 0) {
@@ -86,7 +85,9 @@ const plisp = function() {
     },
     'print': x => {this.logger(x) ; return null},
     '+': x => x.map(_op.float).reduce((a, c) => a + c, 0),
-    'f': x => parseFloat(x[0]),
+    'f': x => {
+      return parseFloat(x[0])
+    },
     'float': x => {
       if (isAtom(x)) return parseFloat(x)
       return x.map(v => {
@@ -256,7 +257,7 @@ const plisp = function() {
       for (let i = 0; i < funObj.args.length; i++) {
         funCtx[funObj.args[i]] = values[i]
       }
-      return this.eval(funObj.fun, funCtx)
+      return this.run(funObj.fun, funCtx)
     }
 
     // look for a registered function
