@@ -45,22 +45,27 @@ const plisp = function() {
     },
     '<': x => {
       let len = x.length
-      for (var i = 0; i < len-1; i++) {if (x[i] >= x[i+1]) return false}
+      console.log(x)
+      let xf = x.map(_op.float)
+      for (var i = 0; i < len-1; i++) {if (xf[i] >= xf[i+1]) return false}
       return true
     },
     '>': x => {
       let len = x.length
-      for (var i = 0; i < len-1; i++) {if (x[i] <= x[i+1]) return false}
+      let xf = x.map(_op.float)
+      for (var i = 0; i < len-1; i++) {if (xf[i] <= xf[i+1]) return false}
       return true
     },
     '<=': x => {
       let len = x.length
-      for (var i = 0; i < len-1; i++) {if (x[i] > x[i+1]) return false}
+      let xf = x.map(_op.float)
+      for (var i = 0; i < len-1; i++) {if (xf[i] > xf[i+1]) return false}
       return true
     },
     '>=': x => {
       let len = x.length
-      for (var i = 0; i < len-1; i++) {if (x[i] < x[i+1]) return false}
+      let xf = x.map(_op.float)
+      for (var i = 0; i < len-1; i++) {if (xf[i] < xf[i+1]) return false}
       return true
     },
     'bool': x => {
@@ -81,6 +86,7 @@ const plisp = function() {
     },
     'print': x => {this.logger(x) ; return null},
     '+': x => x.map(_op.float).reduce((a, c) => a + c, 0),
+    'f': x => parseFloat(x[0]),
     'float': x => {
       if (isAtom(x)) return parseFloat(x)
       return x.map(v => {
@@ -190,21 +196,12 @@ const plisp = function() {
       let operName = expr[0];
 
       // code to string when using the ' character
-      if (operName[0] === "'") return '["'+JSON.stringify(expr).slice(3)
+      if (operName[0] === "'") return JSON.parse('["'+JSON.stringify(expr).slice(3))
       
-      if (this.funcs[operName]) {
-        return this.funcs[operName](expr.slice(1))
-      }
-
       if (operName === 'defun') {
-
-        this.funcs[expr[1]] = (args) => {
-          var funCtx = _clone(ctx)
-          let argsNames = expr[2]
-          for (let i = 0; i < argsNames.length; i++) {
-            funCtx[argsNames[i]] = args[i]
-          }
-          return this.eval(expr[3], funCtx)
+        this.funcs[expr[1]] = {
+          args: expr[2],
+          fun: expr[3]
         }
         return null
       }
@@ -252,6 +249,16 @@ const plisp = function() {
     // at isArray(expr) && isArray(expr[0])
     if (operName === 'parallel') return null
     
+    // check for defined functions
+    if (this.funcs[operName]) {
+      let funObj = this.funcs[operName]
+      let funCtx = _clone(ctx)
+      for (let i = 0; i < funObj.args.length; i++) {
+        funCtx[funObj.args[i]] = values[i]
+      }
+      return this.eval(funObj.fun, funCtx)
+    }
+
     // look for a registered function
     let oper = this.op[operName]
 

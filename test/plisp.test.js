@@ -443,3 +443,10 @@ test('to invert array', () => {
     expect(res).toEqual([ [ 3, 3 ], [ 2, 2 ], [ 1, 1 ] ])
   })
 });
+
+test.only('to float scalar', () => {
+  let res = lsp.run(`(f 123)`)
+  return res.then((res) => {
+    expect(res).toBe(123)
+  })
+});
