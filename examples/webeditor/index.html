@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>plisp in Action</title>
+<script type="text/javascript" src="../../dist/plisp.js"></script>
+<style type="text/css" media="screen">
+  body {
+    background: #202020;
+  }
+  #editor { 
+    position: absolute;
+    top: 0;
+    right: 50%;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+  }
+
+  #outPanel { 
+    position: absolute;
+    top: 0;
+    right: -10px;
+    bottom: 0;
+    width: 50%;
+    height: 100%;
+
+    color: #f8f8f2;
+    font-family: monospace;
+  }
+</style>
+</head>
+<body>
+
+<div id="editor">(
+  (defun factorial (n) 
+    (
+      (setvar res (f 1))
+      (setvar count (f 1))
+      (setvar n (f (&n)))
+      (loop 
+        (if
+          (< (incf count 1) (&n))
+          (setvar res (* (&count) (&res)))
+          (return)
+        )
+      )
+      (&res)
+    )
+  )
+
+  (float
+    (factorial 0)
+    (factorial 1)
+    (factorial 5)
+    (factorial 10)
+  )      
+)</div>
+<div id="outPanel">
+  <input type="button" id="run" name="run"/ value="Run">
+  <p>Result:</p>
+  <div id="out">
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.11/ace.js" type="text/javascript" charset="utf-8"></script>
+<script>
+  var editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  editor.session.setMode("ace/mode/lisp");
+
+  editor.setOptions({
+    fontSize: "12pt",
+    tabSize: 2
+  });
+  
+  var lsp = new plisp()
+
+  var out = document.getElementById('out')
+  function run() {
+    lsp.run(editor.getValue()).then((res) => {
+      console.log(res)
+      out.innerText = JSON.stringify(res)
+    }).catch((err) => {
+      console.log(err)
+      out.innerText = JSON.stringify(err)
+    })
+    
+  }
+  
+  var runBtn = document.getElementById('run')
+  runBtn.addEventListener('click', run)
+</script>
+</body>
+</html>

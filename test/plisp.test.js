@@ -451,9 +451,20 @@ test('to float scalar', () => {
   })
 });
 
-test.only('get the 0', () => {
+test('get the 0', () => {
   let res = lsp.run(`(&a)`, {a: 0})
   return res.then((res) => {
     expect(res).toBe(0)
+  })
+});
+
+test('accept callback', () => {
+  let ctx2 = {}
+  let cb = (p, i) => p.then((res) => ctx2[i] = res)
+
+  let res = lsp.run(`((setvar a 3)(setvar b 4)(setvar c 5))`, {}, cb)
+  return res.then((res) => {
+    expect(res).toBe('5')
+    expect(ctx2).toEqual({ '0': '3', '1': '4', '2': '5' })
   })
 });

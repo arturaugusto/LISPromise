@@ -174,13 +174,17 @@ const plisp = function() {
 
   this.funcs = {}
 
-  this.run = (expr, ctx) => {
+  this.run = (expr, ctx, cb) => {
     ctx = ctx || {}
     const exprArr = isArray(expr) ? expr : this.parse(expr)
     
     // for list of operations
     if (isArray(exprArr[0])) {
-      return exprArr.reduce((a, c) => a.then(() => this.eval(c, ctx)), Promise.resolve())
+      return exprArr.reduce((a, c, i) => a.then(() => {
+        let res = this.eval(c, ctx)
+        if (cb) cb(res, i)
+        return res
+      }), Promise.resolve())
     }
     // for single operation
     return this.eval(exprArr, ctx)
@@ -293,5 +297,6 @@ const plisp = function() {
     })
   }
 }
+if (!!window) window.plisp = plisp
 
 export default plisp
